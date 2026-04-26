@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, StringVar
 from tkinter.scrolledtext import ScrolledText
 
 root = tk.Tk()
@@ -14,6 +14,14 @@ win_height = screen_height // 2
 x = (screen_width - win_width) // 2
 y = (screen_height - win_height) // 2
 
+fields = [
+    "Фамилия",
+    "Имя",
+    "Отчество",
+    "Курс",
+    "Возраст",
+    ]
+
 root.geometry(f"{win_width}x{win_height}+{x}+{y}")
 
 root.grid_rowconfigure(0, weight=1)
@@ -26,6 +34,7 @@ label = ScrolledText(
     bg='white',
     relief='sunken',
     wrap='word',
+    state="disabled"
 )
 label.grid(
     row=0, column=0,
@@ -47,15 +56,15 @@ btn1.pack(
     padx=5, pady=2
 )
 
-btn2 = ttk.Button(button_frame, text="Отсротировать файл")
+btn2 = ttk.Button(button_frame, text="Отсротировать файл", state="disabled")
 btn2.pack(
     side='top',
     fill='x',
     padx=5, pady=2
 )
 
-btn6 = ttk.Button(button_frame, text="Вывести участок файла")
-btn6.pack(
+btn3 = ttk.Button(button_frame, text="Вывести участок файла", state="disabled")
+btn3.pack(
     side='top',
     fill='x',
     padx=5, pady=2
@@ -64,13 +73,6 @@ btn6.pack(
 entry = ttk.Entry(root)
 entry.grid(
     row=2, column=0,
-    sticky='ew',
-    padx=5, pady=5
-)
-
-progress_bar = ttk.Progressbar(orient="horizontal", mode="indeterminate")
-progress_bar.grid(
-    row=1, column=0,
     sticky='ew',
     padx=5, pady=5
 )
@@ -89,4 +91,17 @@ clear_btn.pack(
     padx=5, pady=2
 )
 
+fields_label = ttk.Label(button_frame, text="Поле для сортировки")
+fields_label.pack(
+    side='top',
+    fill='x',
+    padx=5, pady=2
+)
+
+combobox = ttk.Combobox(button_frame, textvariable=StringVar(value=fields[0]), values=fields, state="readonly")
+combobox.pack(
+    side='top',
+    fill='x',
+    padx=5, pady=2
+)
 
