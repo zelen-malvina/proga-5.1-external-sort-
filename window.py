@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, StringVar
+from tkinter import ttk, StringVar, IntVar
 from tkinter.scrolledtext import ScrolledText
 
 root = tk.Tk()
@@ -14,11 +14,13 @@ win_height = screen_height // 2
 x = (screen_width - win_width) // 2
 y = (screen_height - win_height) // 2
 
+scale_value = IntVar(value=0)
+
 fields = [
     "Фамилия",
     "Имя",
     "Отчество",
-    "Курс",
+    "рейтинг",
     "Возраст",
     ]
 
@@ -104,4 +106,3 @@ combobox.pack(
     fill='x',
     padx=5, pady=2
 )
-

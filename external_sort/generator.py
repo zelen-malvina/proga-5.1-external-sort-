@@ -20,13 +20,13 @@ def get_patronymic(father_name): #функция генерации отчест
         return father_name + 'ович'
 
 def generate_full_name(): #генерация полного имени
-    return [random.choice(surnames), random.choice(names), get_patronymic(random.choice(names)), random.randint(1, 4), random.randint(17, 27)]
+    return [random.choice(surnames), random.choice(names), get_patronymic(random.choice(names)), round(random.uniform(0, 5), 2), random.randint(17, 27)]
 
 def generate_file(filename: str):
     with open(filename, "w", newline='') as file:
         writer = csv.writer(file)
         while True:
-            if (os.path.getsize("file.csv") / (1024**3)) > 1:
+            if (os.path.getsize("file.csv") / (1024**3)) > 1.0:
                 break
             strings = []
             while (len(strings)) < 500000:

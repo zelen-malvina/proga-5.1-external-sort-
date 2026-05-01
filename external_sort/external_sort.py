@@ -12,14 +12,19 @@ filename = "file.csv"
 Доставать по одному элементу из файлов -> добавлять в кучу -> вытаскивать минимальный, записывать в новый файл.
 """
 
-def first_phase(key: int, reverse=False):
+def process_line(parts):
+    if len(parts) >= 5:
+        return [parts[1], parts[2], parts[3], float(parts[4]), int(parts[5])]
+    return None
+
+def first_phase(key: int, reverse=True):
     with open(filename, "r") as file:
         chunk = []
         reader = csv.reader(file)
         i = 0
         for row in reader:
             if row:
-                chunk.append(row)
+                chunk.append(process_line(row))
             if len(chunk) == chunk_size:
                 chunk.sort(key=lambda x: x[key], reverse=reverse)
                 with open(f"sorted_chunk_{i}.csv", "w", newline='') as sort_chunk:
@@ -35,18 +40,16 @@ def first_phase(key: int, reverse=False):
                 chunk = []
         return i
 
-def merge_phase(key, count, reverse=False):
+def merge_phase(key, count, reverse=True):
     heap = []
     sort_chunk = []
     files = [open(f"sorted_chunk_{i}.csv", 'r') for i in range(count)]
     readers = [csv.reader(f) for f in files]
     if reverse:
 
-        class ReverseStr:
-            """
-            Обертка для "обратной строки"
-            нужно для работы max-кучи
-            """
+        class Reverse:
+            """обертка для обратного сравнения любых типов"""
+
             def __init__(self, value):
                 self.value = value
 
@@ -57,13 +60,13 @@ def merge_phase(key, count, reverse=False):
                 return self.value == other.value
 
             def __repr__(self):
-                return self.value
+                return repr(self.value)
 
         for i, f in enumerate(readers): #первое заполнение кучи
             chunk = []
             while len(chunk) < heap_size // count:
-                row = next(f)
-                chunk.append((ReverseStr(row[key]), i, row)) #структура: ключ, номер файла, строка целиком
+                row = process_line(next(f))
+                chunk.append((Reverse(row[key]), i, row)) #структура: ключ, номер файла, строка целиком
             heap.extend(chunk)
         heapq.heapify(heap)
 
@@ -72,8 +75,8 @@ def merge_phase(key, count, reverse=False):
                 row = heapq.heappop(heap) #строка помещаемая в итоговый файл
                 sort_chunk.append(str(row[2]) + '\n')
                 try:
-                    next_row = next(readers[row[1]])
-                    heapq.heappush(heap, (ReverseStr(next_row[key]), row[1], next_row))
+                    next_row = process_line(next(readers[row[1]]))
+                    heapq.heappush(heap, (Reverse(next_row[key]), row[1], next_row))
                 except StopIteration:
                     pass
                 if len(sort_chunk) >= sorted_chunk_size:
@@ -86,7 +89,7 @@ def merge_phase(key, count, reverse=False):
         for i, f in enumerate(readers): #первое заполнение кучи
             chunk = []
             while len(chunk) < heap_size // count:
-                row = next(f)
+                row = process_line(next(f))
                 chunk.append((row[key], i, row)) #структура: ключ, номер файла, строка целиком
             heap.extend(chunk)
         heapq.heapify(heap)
@@ -96,7 +99,7 @@ def merge_phase(key, count, reverse=False):
                 row = heapq.heappop(heap) #строка помещаемая в итоговый файл
                 sort_chunk.append(str(row[2]) + '\n')
                 try:
-                    next_row = next(readers[row[1]])
+                    next_row = process_line(next(readers[row[1]]))
                     heapq.heappush(heap, (next_row[key], row[1], next_row))
                 except StopIteration:
                     pass
