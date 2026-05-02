@@ -1,0 +1,3 @@
+EXPORTS
+    first_phase @1
+    merge_phase @2

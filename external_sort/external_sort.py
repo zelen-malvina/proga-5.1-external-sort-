@@ -1,5 +1,6 @@
 import csv
 import heapq
+import os
 
 chunk_size = 200000
 heap_size = 100000
@@ -14,7 +15,7 @@ filename = "file.csv"
 
 def process_line(parts):
     if len(parts) >= 5:
-        return [parts[1], parts[2], parts[3], float(parts[4]), int(parts[5])]
+        return [parts[0], parts[1], parts[2], float(parts[3]), int(parts[4])]
     return None
 
 def first_phase(key: int, reverse=True):
@@ -22,19 +23,20 @@ def first_phase(key: int, reverse=True):
         chunk = []
         reader = csv.reader(file)
         i = 0
+        os.mkdir("sorted_chunks")
         for row in reader:
             if row:
                 chunk.append(process_line(row))
             if len(chunk) == chunk_size:
                 chunk.sort(key=lambda x: x[key], reverse=reverse)
-                with open(f"sorted_chunk_{i}.csv", "w", newline='') as sort_chunk:
+                with open(f"sorted_chunks/sorted_chunk_{i}.csv", "w", newline='') as sort_chunk:
                     writer = csv.writer(sort_chunk)
                     writer.writerows(chunk)
                     i += 1
                     chunk = []
         if chunk:
             chunk.sort(key=lambda x: x[key], reverse=reverse)
-            with open(f"sorted_chunk_{i}.csv", "w", newline='') as sort_chunk:
+            with open(f"sorted_chunks/sorted_chunk_{i}.csv", "w", newline='') as sort_chunk:
                 writer = csv.writer(sort_chunk)
                 writer.writerows(chunk)
                 chunk = []
@@ -43,12 +45,12 @@ def first_phase(key: int, reverse=True):
 def merge_phase(key, count, reverse=True):
     heap = []
     sort_chunk = []
-    files = [open(f"sorted_chunk_{i}.csv", 'r') for i in range(count)]
+    files = [open(f"sorted_chunks/sorted_chunk_{i}.csv", 'r') for i in range(count)]
     readers = [csv.reader(f) for f in files]
     if reverse:
 
         class Reverse:
-            """обертка для обратного сравнения любых типов"""
+            """обертка для обратного сравнения"""
 
             def __init__(self, value):
                 self.value = value
@@ -111,3 +113,8 @@ def merge_phase(key, count, reverse=True):
 
     for f in files:
         f.close()
+    i = 0
+    while os.path.exists(f"sorted_chunks/sorted_chunk_{i}.csv"):
+        os.remove(f"sorted_chunks/sorted_chunk_{i}.csv")
+        i += 1
+    os.rmdir("sorted_chunks")

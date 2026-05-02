@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, StringVar, IntVar
+from tkinter import ttk, StringVar, IntVar, BooleanVar
 from tkinter.scrolledtext import ScrolledText
 
 root = tk.Tk()
@@ -15,6 +15,7 @@ x = (screen_width - win_width) // 2
 y = (screen_height - win_height) // 2
 
 scale_value = IntVar(value=0)
+reverse_var = BooleanVar(value=False)
 
 fields = [
     "Фамилия",
@@ -102,6 +103,20 @@ fields_label.pack(
 
 combobox = ttk.Combobox(button_frame, textvariable=StringVar(value=fields[0]), values=fields, state="readonly")
 combobox.pack(
+    side='top',
+    fill='x',
+    padx=5, pady=2
+)
+
+rev_label = ttk.Label(button_frame, text="Обратная сортировка")
+rev_label.pack(
+    side='top',
+    fill='x',
+    padx=5, pady=(5, 0)
+)
+
+rev_check = ttk.Checkbutton(button_frame, variable=reverse_var)
+rev_check.pack(
     side='top',
     fill='x',
     padx=5, pady=2
