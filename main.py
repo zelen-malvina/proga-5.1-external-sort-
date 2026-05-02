@@ -3,6 +3,7 @@ from tkinter import *
 from external_sort import generator, external_sort
 
 use_dll = 1
+files = []
 
 if use_dll == 1:
     lib = ctypes.WinDLL("external_sort_cpp/bin/Debug/external_sort_cpp.dll")
@@ -30,10 +31,12 @@ def async_check_file_size(event, filename):
 
 
 def async_file_generation():
-    filename = "file.csv"
     window.btn1.config(state="disabled")
     window.btn2.config(state="disabled")
     window.btn3.config(state="disabled")
+    filename = f"file_{len(files)}.csv"
+    files.append(filename)
+    window.combobox_input_files.config(values=files)
     check_event = threading.Event()
     check_thread = threading.Thread(target=async_check_file_size, args=(check_event, filename), daemon=True)
     time_start = time.time()
@@ -43,9 +46,9 @@ def async_file_generation():
     def gen_file():
         try:
             generator.generate_file(filename)
+            window.root.after(0, lambda: window.combobox_input_files.config(values=files))
             time_finish = time.time()
-            window.root.after(0, label_output,
-                              f"Сгенерировал :D, время генерации: {((time_finish - time_start) / 60):.2f} минут\n")
+            window.root.after(0, label_output, f"Сгенерировал :D, время генерации: {((time_finish - time_start) / 60):.2f} минут\n")
         finally:
             window.root.after(0, lambda: window.btn1.config(state="normal"))
             window.root.after(0, lambda: window.btn2.config(state="normal"))
@@ -70,54 +73,57 @@ def async_file_sort():
     if window.combobox.get():
         key = window.fields.index(window.combobox.get())
         is_reverse = window.reverse_var.get()
-        label_output("Начинаю сортировать...\n")
-        first_phase_check_event = threading.Event()
-        first_phase_check_thread = threading.Thread(target=async_check_files_count, args=(first_phase_check_event,),
-                                                    daemon=True)
-        first_phase_time_start = time.time()
-        first_phase_check_thread.start()
-        second_phase_check_event = threading.Event()
-        second_phase_check_thread = threading.Thread(target=async_check_file_size,
-                                                     args=(second_phase_check_event, "sorted.txt"), daemon=True)
-        window.btn1.config(state="disabled")
-        window.btn2.config(state="disabled")
-        window.btn3.config(state="disabled")
+        if window.combobox_input_files.get():
+            external_sort.filename = window.combobox_input_files.get()
+            label_output(f"Начинаю сортировать файл {external_sort.filename}...\n")
+            first_phase_check_event = threading.Event()
+            first_phase_check_thread = threading.Thread(target=async_check_files_count, args=(first_phase_check_event,),
+                                                        daemon=True)
+            first_phase_time_start = time.time()
+            first_phase_check_thread.start()
+            second_phase_check_event = threading.Event()
+            second_phase_check_thread = threading.Thread(target=async_check_file_size,
+                                                         args=(second_phase_check_event, "sorted.txt"), daemon=True)
+            window.btn1.config(state="disabled")
+            window.btn2.config(state="disabled")
+            window.btn3.config(state="disabled")
 
-        def ext_sort():
-            try:
-                if use_dll == 1:
-                    count = lib.first_phase(key, is_reverse)
-                else:
-                    count = external_sort.first_phase(key, reverse=is_reverse)
+            def ext_sort():
+                try:
+                    if use_dll == 1:
+                        count = lib.first_phase(key, is_reverse)
+                    else:
+                        count = external_sort.first_phase(key, reverse=is_reverse)
 
-                first_phase_time_finish = time.time()
-                window.root.after(0, label_output,
-                                  f"Фаза разбиения завершена, время выполнения: {((first_phase_time_finish - first_phase_time_start) / 60):.2f} минут\nНачинаю фазу слияния...\n")
-                first_phase_check_event.set()
-                second_phase_time_start = time.time()
-                second_phase_check_thread.start()
+                    first_phase_time_finish = time.time()
+                    window.root.after(0, label_output,
+                                      f"Фаза разбиения завершена, время выполнения: {((first_phase_time_finish - first_phase_time_start) / 60):.2f} минут\nНачинаю фазу слияния...\n")
+                    first_phase_check_event.set()
+                    second_phase_time_start = time.time()
+                    second_phase_check_thread.start()
 
-                if use_dll == 1:
-                    lib.merge_phase(key, count, is_reverse)
-                else:
-                    external_sort.merge_phase(key, count, reverse=is_reverse)
+                    if use_dll == 1:
+                        lib.merge_phase(key, count, is_reverse)
+                    else:
+                        external_sort.merge_phase(key, count, reverse=is_reverse)
 
-                second_phase_time_finish = time.time()
-                window.root.after(0, label_output,
-                                  f"Фаза cлияния завершена, время выполнения: {((second_phase_time_finish - second_phase_time_start) / 60):.2f} минут\n")
+                    second_phase_time_finish = time.time()
+                    window.root.after(0, label_output,
+                                      f"Фаза cлияния завершена, время выполнения: {((second_phase_time_finish - second_phase_time_start) / 60):.2f} минут\n")
 
-            except Exception as e:
-                label_output(f"ошибка: {e}\n")
+                except Exception as e:
+                    label_output(f"ошибка: {e}\n")
 
-            finally:
-                window.root.after(0, lambda: window.btn1.config(state="normal"))
-                window.root.after(0, lambda: window.btn2.config(state="normal"))
-                window.root.after(0, lambda: window.btn3.config(state="normal"))
-                second_phase_check_event.set()
+                finally:
+                    window.root.after(0, lambda: window.btn1.config(state="normal"))
+                    window.root.after(0, lambda: window.btn2.config(state="normal"))
+                    window.root.after(0, lambda: window.btn3.config(state="normal"))
+                    second_phase_check_event.set()
 
-        sort_thread = threading.Thread(target=ext_sort, daemon=True)
-        sort_thread.start()
-
+            sort_thread = threading.Thread(target=ext_sort, daemon=True)
+            sort_thread.start()
+        else:
+            label_output("Выберите файл для сортировки, иначе никак :/\n")
     else:
         label_output("Выберите поле по которому будет проводиться сортировка, иначе никак :/\n")
 
@@ -177,7 +183,13 @@ window.btn1["command"] = async_file_generation
 window.btn2["command"] = async_file_sort
 window.btn3["command"] = async_values_output
 window.root.bind('<Return>', lambda event: window.submit_btn.invoke())
-if os.path.exists("file.csv"):
+num_files = 0
+while (os.path.exists(f"file_{num_files}.csv")) and (f"file_{num_files}.csv" not in files):
+    files.append(f"file_{num_files}.csv")
+    num_files += 1
+
+window.combobox_input_files["values"] = files
+if files:
     window.btn2.config(state="normal")
 if os.path.exists("sorted.txt"):
     window.btn3.config(state="normal")

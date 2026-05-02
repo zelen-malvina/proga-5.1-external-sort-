@@ -121,3 +121,22 @@ rev_check.pack(
     fill='x',
     padx=5, pady=2
 )
+
+combobox_input_files = ttk.Combobox(button_frame, state="readonly")
+combobox.pack(
+    side='top',
+    fill='x',
+    padx=5, pady=2
+)
+
+files_label = ttk.Label(button_frame, text="Файл для сортировки")
+files_label.pack(
+    side='top',
+    fill='x',
+    padx=5, pady=2
+)
+combobox_input_files.pack(
+    side='top',
+    fill='x',
+    padx=5, pady=2
+)
